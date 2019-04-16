@@ -5,7 +5,8 @@ showhelp () {
     echo "  zeploy [--app-dir=<dir>] <host>:<path>"
     echo "  zeploy --help"
     echo
-    echo "Deploy Zingle software."
+    echo "Deploy Zingle software.  The software must be designed to work with"
+    echo "this tool."
     echo
     echo "ARGUMENTS"
     echo
@@ -15,12 +16,6 @@ showhelp () {
     echo "OPTIONS"
     echo
     echo "  -A,--app-dir=<dir>      Path of software. (default: current directory)"
-    echo
-    echo "PROTOCOL"
-    echo
-    echo "For a project to support deploying with this tool, the project must"
-    echo "implement the Zingle Deploy Protocol.  See documentation for more"
-    echo "information."
 }
 
 declare app=$(pwd)
