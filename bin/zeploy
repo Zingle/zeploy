@@ -1,0 +1,116 @@
+#!/bin/bash -e
+
+showhelp () {
+    echo "Usage:"
+    echo "  zeploy [--app-dir=<dir>] <host>:<path>"
+    echo "  zeploy --help"
+    echo
+    echo "Deploy Zingle software."
+    echo
+    echo "ARGUMENTS"
+    echo
+    echo "  host                    Target host (may be DNS pool)."
+    echo "  path                    Target path on host."
+    echo
+    echo "OPTIONS"
+    echo
+    echo "  -A,--app-dir=<dir>      Path of software. (default: current directory)"
+    echo
+    echo "PROTOCOL"
+    echo
+    echo "For a project to support deploying with this tool, the project must"
+    echo "implement the Zingle Deploy Protocol.  See documentation for more"
+    echo "information."
+}
+
+declare app=$(pwd)
+declare ip=
+declare -a ips=()
+declare -a pids=()
+declare stage
+
+opts=$(getopt -oA:B: -lhelp,app-dir: -- "$@")
+eval set -- "$opts"
+
+while true; do
+    case "$1" in
+        --help)         showhelp;           exit;;
+        -A|--app-dir)   app="$2";           shift 2;;
+        --)                                 shift; break;;
+        *)                                  break;;
+    esac
+done
+
+if test $# -eq 0; then
+    echo "missing target" >&2
+    exit 1
+elif test $# -gt 1; then
+    echo "unexpected arguments" >&2
+    exit 2
+fi
+
+declare host="${1%%:*}"
+declare path="${1#*:}"
+
+if test -z "$host" -o -z "$path"; then
+    echo "invalid target" >&2
+    exit 10
+fi
+
+ips=($(dig +short $host))
+
+if test ${#ips[@]} -eq 0; then
+    echo "host '$host' did not resolve to anything" >&2
+    exit 20
+fi
+
+echo "creating build directory '$path.new' on ${#ips[@]} host(s)"
+
+for ip in ${ips[@]}; do
+    ssh $ip mkdir -p "$path.new"
+done
+
+echo "copying software to ${#ips[@]} host(s)"
+
+for ip in ${ips[@]}; do
+    tar cz -C "$app" --exclude=./.git --exclude=./zeploy . \
+        | ssh $ip tar xz -C "$path.new"
+done
+
+for stage in target-install; do
+    stage=zeploy-$stage
+
+    if grep -q ^.PHONY:.*$stage.* "$app/Makefile"; then
+        echo "executing $stage on ${#ips[@]} host(s)"
+
+        for ip in ${ips[@]}; do
+            ssh $ip make --no-print-directory -C $path.new $stage
+        done
+    fi
+done
+
+echo "swapping out $path on ${#ips[@]} host(s)"
+
+for ip in ${ips[@]}; do
+    ssh $ip mv $path $path.old \&\& mv $path.new $path
+done
+
+for stage in target-reload; do
+    stage=zeploy-$stage
+
+    if grep -q ^.PHONY:.*$stage.* "$app/Makefile"; then
+        echo "executing $stage on ${#ips[@]} host(s)"
+
+        for ip in ${ips[@]}; do
+            ssh $ip make --no-print-directory -C $path $stage
+        done
+    fi
+done
+
+echo "deleting old version from ${#ips[@]} host(s)"
+
+for ip in ${ips[@]}; do
+    ssh $ip rm -fr $path.old
+done
+
+echo "successfully deployed to ${#ips[@]} host(s)"

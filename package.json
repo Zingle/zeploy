@@ -1,0 +1,18 @@
+{
+  "name": "@zingle/zeploy",
+  "version": "0.0.1-alpha",
+  "description": "Zingle deploy tool",
+  "bin": {
+    "zeploy": "bin/zeploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Zingle/zeploy.git"
+  },
+  "author": "Richard Remer <reanjr@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Zingle/zeploy/issues"
+  },
+  "homepage": "https://github.com/Zingle/zeploy#readme"
+}
