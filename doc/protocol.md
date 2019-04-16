@@ -28,19 +28,4 @@ software.
 Examples
 --------
 
-Symfony
--------
-```
-APP = foo-app
-PHPVER = 7.2
-
-target-install:
-    composer install
-    phpunit
-
-target-reload:
-    cp /etc/zingle/$(APP).conf .env.local
-    sudo systemctl restart php$(PHPVER)-fpm
-
-.PHONY: install upgrade
-```
+ * [Symfony](example/Makefile.symfony)
