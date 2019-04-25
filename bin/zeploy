@@ -16,6 +16,16 @@ showhelp () {
     echo "OPTIONS"
     echo
     echo "  -A,--app-dir=<dir>      Path of software. (default: current directory)"
+    echo
+    echo "ENVIRONMENT"
+    echo
+    echo "  ZEPLOY_CONF             Path to target config."
+}
+
+vardecls () {
+    local decls=
+    test "$ZEPLOY_CONF" && decls="$decls ZEPLOY_CONF='$ZEPLOY_CONF'"
+    sed -e s/'^ '// <<< "$decls"
 }
 
 declare app=$(pwd)
@@ -59,6 +69,10 @@ if test ${#ips[@]} -eq 0; then
     exit 20
 fi
 
+if test "$ZEPLOY_CONF"; then
+    vars="$vars ZEPLOY_CONF=$ZEPLOY_CONF"
+fi
+
 echo "creating build directory '$path.new' on ${#ips[@]} host(s)"
 
 for ip in ${ips[@]}; do
@@ -79,7 +93,7 @@ for stage in target-install; do
         echo "executing $stage on ${#ips[@]} host(s)"
 
         for ip in ${ips[@]}; do
-            ssh $ip make --no-print-directory -C $path.new $stage
+            ssh $ip make $(vardecls) --no-print-directory -C $path.new $stage
         done
     fi
 done
@@ -97,7 +111,7 @@ for stage in target-reload; do
         echo "executing $stage on ${#ips[@]} host(s)"
 
         for ip in ${ips[@]}; do
-            ssh $ip make --no-print-directory -C $path $stage
+            ssh $ip make $(vardecls) --no-print-directory -C $path $stage
         done
     fi
 done
