@@ -16,12 +16,12 @@ Hooks
 Each project hook must be specified as a `.PHONY` target.  Simply adding a
 target is not enough.  No hooks are required to be present.
 
-### Hook: target-install
+### Hook: zeploy-target-install
 Execute installation of software on target system.  This happens after the
 software has been copied to the target, but before the software is moved into
 its final destination.
 
-### Hook: target-reload
+### Hook: zeploy-target-reload
 Reload any target system resources after an installation or upgrade of the
 software.
 
