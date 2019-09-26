@@ -9,4 +9,4 @@ zeploy-target-reload:
     cp /etc/zingle/$(APP).conf .env.local
     sudo systemctl restart php$(PHPVER)-fpm
 
-.PHONY: target-install target-reload
+.PHONY: zeploy-target-install zeploy-target-reload
